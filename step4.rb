@@ -15,7 +15,7 @@ def run_server()
         puts request
 
         session.print("HTTP/1.1 200/OK\r\n")
-        session.print("Content-type: text/html\r\n")
+        session.print("Content-Type: text/html\r\n")
         session.print("\r\n")
         session.print(response(request))
 
