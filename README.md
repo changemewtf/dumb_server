@@ -21,3 +21,6 @@ Figure out how to read a whole POST request.
 
 ## Step 7
 Implement the POST/Redirect/GET so visitors can refresh the page after submitting.
+
+## Step 8
+Handle URL encoding without relying on anything outside of Ruby's standard library.
