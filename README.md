@@ -18,3 +18,6 @@ Get browsers to stop bothering us for a favicon.
 
 ## Step 6
 Figure out how to read a whole POST request.
+
+## Step 7
+Implement the POST/Redirect/GET so visitors can refresh the page after submitting.
