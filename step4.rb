@@ -1,29 +1,50 @@
 require 'socket'
 
-def response(request)
-    method, path, protocol = request.split(" ")
+# STEP 4: Read an entire GET request and log it to terminal.
 
-    return "I am an awful webserver and have absolutely no idea what #{path} is."
+def log_connection(request_headers, response)
+    print <<-EOF.gsub(/^ {8}/, "")
+        ==================================
+        ====== NEW REQUEST INCOMING ======
+        ==================================
+
+        ------ REQUEST -------------------
+    EOF
+    print request_headers
+    print <<-EOF.gsub(/^ {8}/, "")
+        \n----------------------------------
+
+        ------ RESPONSE ------------------
+    EOF
+    print response
+    print "----------------------------------\n\n"
 end
 
-def run_server()
-    server = TCPServer.new('127.0.0.1', 9090)
+EMPTY_LINE = /^\s*$/
 
-    while session = server.accept()
+server = TCPServer.new('127.0.0.1', 9090)
 
-        request = session.gets()
-        puts request
+while connection = server.accept()
 
-        session.print("HTTP/1.1 200/OK\r\n")
-        session.print("Content-Type: text/html\r\n")
-        session.print("\r\n")
-        session.print(response(request))
-
-        session.close()
-
+    # Keep reading until we hit an empty line
+    lines = []
+    while line = connection.gets and line !~ EMPTY_LINE
+        lines << line.chomp
     end
-end
 
-if __FILE__ == $0
-    run_server()
+    method, path, protocol = lines[0].split(" ")
+    request_headers = lines.join("\n")
+
+    response = <<-EOF.gsub(/^ */, "") # trim leading spaces
+        HTTP/1.1 200 OK\r
+        Content-Type: text/html\r
+        \r
+        I am an awful webserver and have absolutely no idea what #{path} is.
+    EOF
+
+    connection.write(response)
+    connection.close()
+
+    log_connection(request_headers, response)
+
 end

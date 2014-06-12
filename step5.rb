@@ -1,45 +1,61 @@
 require 'socket'
 
-def html_template(body)
-    <<-EOF
-    <!doctype html>
-    <html>
-        <head>
-            <title>Signup List</title>
-        </head>
-        <body>
-        #{body}
-        </body>
-    </html>
+# STEP 5: Correctly return 404 for favicon requests.
+
+def log_connection(request_headers, response)
+    print <<-EOF.gsub(/^ {8}/, "")
+        ==================================
+        ====== NEW REQUEST INCOMING ======
+        ==================================
+
+        ------ REQUEST -------------------
     EOF
+    print request_headers
+    print <<-EOF.gsub(/^ {8}/, "")
+        \n----------------------------------
+
+        ------ RESPONSE ------------------
+    EOF
+    print response
+    print "\n----------------------------------\n\n"
 end
 
-def response(path, signup_list)
-    return html_template("Current signups: #{signup_list.join(', ')}")
-end
+EMPTY_LINE = /^\s*$/
 
-def run_server()
-    server = TCPServer.new('127.0.0.1', 9090)
+server = TCPServer.new('127.0.0.1', 9090)
 
-    signup_list = ["Max"]
+while connection = server.accept()
 
-    while session = server.accept()
-
-        request = session.gets()
-        puts request
-
-        method, path, protocol = request.split(" ")
-
-        session.print("HTTP/1.1 200/OK\r\n")
-        session.print("Content-Type: text/html\r\n")
-        session.print("\r\n")
-        session.print(response(path, signup_list))
-
-        session.close()
-
+    lines = []
+    while line = connection.gets and line !~ EMPTY_LINE
+        lines << line.chomp
     end
-end
 
-if __FILE__ == $0
-    run_server()
+    method, path, protocol = lines[0].split(" ")
+    request_headers = lines.join("\n")
+
+    response_code = '200 OK'
+
+    response_body = case path
+    when '/favicon.ico'
+        response_code = '404 Not Found'
+        "Sorry! No favicon, pal."
+    else
+        "I am an awful webserver and have absolutely no idea what #{path} is."
+    end
+
+    # Don't set the headers until we've handled the method and path,
+    # because we might be changing the response code.
+    response_headers = <<-EOF.gsub(/^ */, "")
+        HTTP/1.1 #{response_code}\r
+        Content-Type: text/html\r
+    EOF
+
+    response = response_headers + "\r\n" + response_body
+
+    connection.write(response)
+    connection.close()
+
+    log_connection(request_headers, response)
+
 end
