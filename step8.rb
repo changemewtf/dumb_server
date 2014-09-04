@@ -92,7 +92,7 @@ while connection = server.accept()
     when "POST"
         case path
         when '/sauce'
-            sauce_type = URI.decode(request_body.split('=').last)
+            sauce_type = URI.decode_www_form(request_body)
             flash = "OK! Have some #{sauce_type}."
             response_code = '302 Moved Temporarily'
             headers['Location'] = '/sauce'
